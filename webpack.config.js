@@ -1,8 +1,8 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import path from 'path';
 import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
 
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default {
@@ -34,17 +34,14 @@ export default {
       },
     ],
   },
-  entry: "./src/index.js",
+  entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: "index_bundle.js",
+    filename: 'index_bundle.js',
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: 'index.html',
     }),
   ],
-  output: {
-    clean: true,
-  },
 };
