@@ -31,22 +31,6 @@ export default async () => {
     posts: [],
   };
 
-  const getHTTPresponseData = (url) => axios.get(createUrl(url))
-    .then((response) => {
-      const parsedData = getParsedData(response.data);
-      const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: url, ...feed }));
-      state.feeds = [...feedsWithUrl, ...state.feeds];
-      const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
-      state.posts = [...initial, ...state.posts];
-      return { response: response.status };
-    })
-    .catch(() => new Error('networkError'));
-
-  const makeValidateScheme = (links) => {
-    const schema = yup.string().notOneOf(links).url();
-    return schema;
-  };
-
   const i18n = i18next.createInstance();
   i18n.init({
     lng: 'ru',
@@ -70,6 +54,22 @@ export default async () => {
 
   const watchedState = renderRSS(state, i18n);
 
+  const getHTTPresponseData = (url) => axios.get(createUrl(url))
+    .then((response) => getParsedData(response.data.contents))
+    .then((parsedData) => {
+      const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: url, ...feed }));
+      watchedState.feeds = [...watchedState.feeds, feedsWithUrl];
+      const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
+      watchedState.posts = [...watchedState.posts, ...initial];
+      // return { response: response.status };
+    })
+    .catch(() => new Error('networkError'));
+
+  const makeValidateScheme = (links) => {
+    const schema = yup.string().notOneOf(links).url();
+    return schema;
+  };
+
   const rssForm = document.querySelector('.rss-form');
   const input = document.querySelector('#url-input');
 
@@ -81,19 +81,19 @@ export default async () => {
         getHTTPresponseData(input.value).then(() => {
           state.form.error = i18n.t('validUrl');
           state.links.push(input.value);
-          console.log(state);
+
           watchedState.status = 'loaded';
+          console.log(state);
           watchedState.status = 'feeling';
         }).catch(() => {
           watchedState.form.error = i18n.t('noRSS');
-        });
+        })
       })
-
       .catch((error) => {
         const [currentError] = error.errors;
         watchedState.form.error = currentError;
         state.form.error = currentError;
-        console.log(state.form.error);
       });
+
   });
 };

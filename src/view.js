@@ -27,13 +27,16 @@ const makeFeedsContainer = (elements = [], text = '') => {
 //  makeFeedsContainer([listEl], 'TEXT');
 
 const makeFeedList = (feeds, text) => {
-  const feedsList = feeds.map(({ title, description }) => {
+  const feedsList = feeds.flat();
+  const feedsMap = feedsList.map(({ title, description }) => {
     const elList = createNewElement('li', ['list-group-item', 'border-0', 'border-end-0']);
     const head = createNewElement('h3', ['h6', 'm-0'], title);
     const descr = createNewElement('p', ['m-0', 'small', 'text-black-50'], description);
-    return elList.append(head, descr);
+    elList.append(head, descr);
+    return elList;
   });
-  makeFeedsContainer(feedsList, text);
+
+  makeFeedsContainer(feedsMap, text);
 };
 
 const makeSuccesText = (input, p, text) => {
@@ -52,7 +55,7 @@ const makeInvaildText = (input, p, text) => {
   p.textContent = text; //  eslint-disable-next-line no-param-reassign
 };
 
-export default (state, i18n) => onChange(state, (path, current) => {
+export default (state, i18n) => onChange(state, (path, value) => {
   const paragraph = document.querySelector('.feedback');
   const urlInput = document.querySelector('#url-input');
   const feedsEl = document.querySelector('.feeds');
@@ -60,7 +63,7 @@ export default (state, i18n) => onChange(state, (path, current) => {
 
   switch (path) {
     case 'form.error':
-      makeInvaildText(urlInput, paragraph, i18n.t(current));
+      makeInvaildText(urlInput, paragraph, i18n.t(value));
       break;
 
     case 'status':
