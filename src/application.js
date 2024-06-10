@@ -2,6 +2,8 @@ import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
 import renderRSS from './view.js';
+import _ from 'lodash';
+import getParsedData from './parse.js';
 
 const createUrl = (rssFeed) => {
   const proxy = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
@@ -21,7 +23,7 @@ export default async () => {
 
   const state = {
     form: {
-      status: 'feeling',
+      status: '',
       error: '',
     },
     links: [],
@@ -29,21 +31,14 @@ export default async () => {
     posts: [],
   };
 
-  const getParsedData = (data) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(data, 'application/xml');
-    const parseError = doc.querySelector('parsererror');
-    if (parseError) {
-      return new Error('noRSS');
-    }
-    return doc;
-  };
-
   const getHTTPresponseData = (url) => axios.get(createUrl(url))
     .then((response) => {
-      const parsedData = getParsedData(response.data.contents);
+      const parsedData = getParsedData(response.data);
       const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: url, ...feed }));
       state.feeds = [...feedsWithUrl, ...state.feeds];
+      const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
+      state.posts = [...initial, ...state.posts];
+      return { response: response.status };
     })
     .catch(() => new Error('networkError'));
 
@@ -59,13 +54,15 @@ export default async () => {
     resources: {
       ru: {
         translation: {
+          titleFeeds: 'Фиды',
+          titlePosts: 'Посты',
           validUrl: 'RSS успешно загружен',
           invalidUrl: 'Ссылка должна быть валидным URL',
           empty: 'Не должно быть пустым',
           alreadyExists: 'RSS уже существует',
           noRSS: 'Ресурс не содержит валидный RSS',
           networkError: 'Ошибка сети',
-          default: 'Неизвестная ошибка. Что-то пошло не так',
+          default: 'Что-то пошло не так',
         },
       },
     },
@@ -79,19 +76,17 @@ export default async () => {
   rssForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // const loadedFeed = Object.values(state.feeds).map((item) => item.link);
-
     makeValidateScheme(state.links).validate(input.value)
       .then(() => {
         getHTTPresponseData(input.value).then(() => {
           state.form.error = i18n.t('validUrl');
-          console.log(state.feeds);
           state.links.push(input.value);
+          console.log(state);
           watchedState.status = 'loaded';
           watchedState.status = 'feeling';
         }).catch(() => {
           watchedState.form.error = i18n.t('noRSS');
-        });
+        })
       })
 
       .catch((error) => {
