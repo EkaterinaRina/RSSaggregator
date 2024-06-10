@@ -1,8 +1,8 @@
 import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
-import renderRSS from './view.js';
 import _ from 'lodash';
+import renderRSS from './view.js';
 import getParsedData from './parse.js';
 
 const createUrl = (rssFeed) => {
@@ -86,7 +86,7 @@ export default async () => {
           watchedState.status = 'feeling';
         }).catch(() => {
           watchedState.form.error = i18n.t('noRSS');
-        })
+        });
       })
 
       .catch((error) => {

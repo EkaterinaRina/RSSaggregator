@@ -2,7 +2,7 @@ import onChange from 'on-change';
 
 const createNewElement = (tag, style = [], content = '') => {
   const element = document.createElement(tag);
-  element.classList.add(...style)
+  element.classList.add(...style);
   element.textContent = content;
   return element;
 };
@@ -19,9 +19,12 @@ const makeFeedsContainer = (elements = [], text = '') => {
   box.replaceChildren(cardBorder);
 };
 
-//проверка на дурачка
-//const listEl = createNewElement('li', ['list-group-item', 'border-0', 'border-end-0'], 'ELEMENT');
-//makeFeedsContainer([listEl], 'TEXT');
+//  проверка на дурачка
+//  const listEl = createNewElement('li', ['list-group-item',
+//  'border-0',
+//  'border-end-0'],
+//  'ELEMENT');
+//  makeFeedsContainer([listEl], 'TEXT');
 
 const makeFeedList = (feeds, text) => {
   const feedsList = feeds.map(({ title, description }) => {
@@ -31,13 +34,12 @@ const makeFeedList = (feeds, text) => {
     return elList.append(head, descr);
   });
   makeFeedsContainer(feedsList, text);
-}
-
+};
 
 const makeSuccesText = (input, p, text) => {
   input.classList.remove('is-invalid');
   input.classList.add('is-valid');
-  p.textContent = text; // eslint-disable-next-line no-param-reassign
+  p.textContent = text; //  eslint-disable-next-line no-param-reassign
   p.classList.remove('text-danger');
   p.classList.add('text-success');
 };
@@ -47,7 +49,7 @@ const makeInvaildText = (input, p, text) => {
   input.classList.add('is-invalid');
   p.classList.remove('text-success');
   p.classList.add('text-danger');
-  p.textContent = text; // eslint-disable-next-line no-param-reassign
+  p.textContent = text; //  eslint-disable-next-line no-param-reassign
 };
 
 export default (state, i18n) => onChange(state, (path, current) => {
@@ -62,8 +64,8 @@ export default (state, i18n) => onChange(state, (path, current) => {
       break;
 
     case 'status':
-      //input.value = '';
-      //input.focus();
+      //  input.value = '';
+      //  input.focus();
       feedsEl.textContent = '';
       postsEl.textContent = '';
       makeFeedList(state.feeds, i18n.t('titleFeeds'));
