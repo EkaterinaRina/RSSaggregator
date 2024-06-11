@@ -54,16 +54,23 @@ export default async () => {
 
   const watchedState = renderRSS(state, i18n);
 
+  const errorHandler = (error) => {
+    if (error.isAxiosError) {
+      watchedState.form.error = i18n.t('networkError');
+    } else {
+      watchedState.form.error = i18n.t('noRSS');
+    }
+  };
+
   const getHTTPresponseData = (url) => axios.get(createUrl(url))
-    .then((response) => getParsedData(response.data.contents))
-    .then((parsedData) => {
+    .then((response) => {
+      const parsedData = getParsedData(response.data.contents);
       const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: url, ...feed }));
-      watchedState.feeds = [...watchedState.feeds, feedsWithUrl];
       const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
+      watchedState.feeds = [...watchedState.feeds, feedsWithUrl];
       watchedState.posts = [...watchedState.posts, ...initial];
-      // return { response: response.status };
-    })
-    .catch(() => new Error('networkError'));
+    });
+  //  .catch(() => new Error('networkError'));
 
   const makeValidateScheme = (links) => {
     const schema = yup.string().notOneOf(links).url();
@@ -85,15 +92,12 @@ export default async () => {
           watchedState.status = 'loaded';
           console.log(state);
           watchedState.status = 'feeling';
-        }).catch(() => {
-          watchedState.form.error = i18n.t('noRSS');
-        })
+        }).catch((err) => errorHandler(err));
       })
       .catch((error) => {
         const [currentError] = error.errors;
         watchedState.form.error = currentError;
         state.form.error = currentError;
       });
-
   });
 };

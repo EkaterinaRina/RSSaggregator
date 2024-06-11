@@ -7,8 +7,7 @@ const createNewElement = (tag, style = [], content = '') => {
   return element;
 };
 
-const makeFeedsContainer = (elements = [], text = '') => {
-  const box = document.querySelector('.feeds');
+const makeContainer = (box, elements = [], text = '') => {
   const cardBorder = createNewElement('div', ['card', 'border-0']);
   const cardBody = createNewElement('div', ['card-body']);
   const cardTitle = createNewElement('h2', ['card-title', 'h4'], text);
@@ -18,13 +17,6 @@ const makeFeedsContainer = (elements = [], text = '') => {
   cardBorder.append(cardBody, listGroup);
   box.replaceChildren(cardBorder);
 };
-
-//  проверка на дурачка
-//  const listEl = createNewElement('li', ['list-group-item',
-//  'border-0',
-//  'border-end-0'],
-//  'ELEMENT');
-//  makeFeedsContainer([listEl], 'TEXT');
 
 const makeFeedList = (feeds, text) => {
   const feedsList = feeds.flat();
@@ -36,7 +28,34 @@ const makeFeedList = (feeds, text) => {
     return elList;
   });
 
-  makeFeedsContainer(feedsMap, text);
+  const box = document.querySelector('.feeds');
+  makeContainer(box, feedsMap, text);
+};
+
+const makePostsContainer = (elements = [], text = '') => {
+  const postList = elements.map((post) => {
+    const el = createNewElement('li', ['list-group-item', 'd-flex',
+      'justify-content-between', 'align-items-start',
+      'border-0', 'border-end-0']);
+    const link = createNewElement('a', ['fw-bold']);
+    link.setAttribute('data-id', post.id);
+    link.setAttribute('target', '_blank');
+    link.setAttribute('href', post.linkPost);
+    link.setAttribute('rel', 'noopener noreferrer');
+    link.textContent = post.titlePost;
+
+    const button = createNewElement('button', ['btn', 'btn-outline-primary', 'btn-sm']);
+    button.setAttribute('type', 'button');
+    button.setAttribute('data-id', post.id);
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#modal');
+    button.textContent = 'Просмотр';
+
+    el.append(link, button);
+    return el;
+  });
+  const box = document.querySelector('.posts');
+  makeContainer(box, postList, text);
 };
 
 const makeSuccesText = (input, p, text) => {
@@ -63,6 +82,7 @@ export default (state, i18n) => onChange(state, (path, value) => {
 
   switch (path) {
     case 'form.error':
+      console.log(value);
       makeInvaildText(urlInput, paragraph, i18n.t(value));
       break;
 
@@ -72,9 +92,14 @@ export default (state, i18n) => onChange(state, (path, value) => {
       feedsEl.textContent = '';
       postsEl.textContent = '';
       makeFeedList(state.feeds, i18n.t('titleFeeds'));
+      makePostsContainer(state.posts, i18n.t('titlePosts'));
       makeSuccesText(urlInput, paragraph, i18n.t('validUrl'));
       break;
-
+    case 'posts':
+      makePostsContainer(state.posts, i18n.t('titlePosts'));
+      break;
+    case 'feeds':
+      break;
     default:
       throw new Error('BOOM!');
   }

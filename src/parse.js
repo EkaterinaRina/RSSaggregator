@@ -1,13 +1,9 @@
 export default (data) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(data, 'text/xml');
-  //  console.log(doc);
   const parseError = doc.querySelector('parsererror');
   if (parseError) {
-    const error = new Error(parseError.textContent);
-    error.message = 'invalidRSS';
-    error.isParsingError = true;
-    throw error;
+    return new Error('noRSS');
   }
   const root = doc.querySelector('channel');
   const feedTitle = root.querySelector('title').textContent;
@@ -16,7 +12,8 @@ export default (data) => {
   const newPosts = items.map((item) => {
     const titlePost = item.querySelector('title').textContent;
     const descriptionPost = item.querySelector('description').textContent;
-    return { titlePost, descriptionPost };
+    const linkPost = item.querySelector('link').textContent;
+    return { titlePost, descriptionPost, linkPost };
   });
   return { feeds: [{ title: feedTitle, description: feedDescription }], posts: newPosts };
 };
