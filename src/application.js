@@ -72,6 +72,23 @@ export default async () => {
     });
   //  .catch(() => new Error('networkError'));
 
+  const updateData = (feeds, interval = 5000) => {
+    setTimeout(() => {
+      const newPromise = feeds.flat().map((feed) => axios.get(createUrl(feed.link))
+        .then((response) => {
+          const newPosts = getParsedData(response.data.contents).posts;
+          const oldTitles = new Set(watchedState.posts.map((post) => post.titlePost));
+          const filteredNewPost = newPosts.filter((post) => !oldTitles.has(post.titlePost));
+          const newPostsWithId = filteredNewPost.map((post) => ({ id: _.uniqueId(), ...post }));
+          const updatePosts = [...newPostsWithId, ...watchedState.posts];
+          watchedState.posts = updatePosts;
+          state.posts = updatePosts;
+        }).catch((error) => errorHandler(error)));
+      Promise.all(newPromise)
+        .finally(() => updateData(feeds));
+    }, interval);
+  };
+
   const makeValidateScheme = (links) => {
     const schema = yup.string().notOneOf(links).url();
     return schema;
@@ -90,8 +107,10 @@ export default async () => {
           state.links.push(input.value);
 
           watchedState.status = 'loaded';
-          console.log(state);
+
           watchedState.status = 'feeling';
+          updateData(state.feeds);
+          console.log(state);
         }).catch((err) => errorHandler(err));
       })
       .catch((error) => {
