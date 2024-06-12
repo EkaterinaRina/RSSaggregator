@@ -32,12 +32,17 @@ const makeFeedList = (feeds, text) => {
   makeContainer(box, feedsMap, text);
 };
 
-const makePostsContainer = (elements = [], text = '') => {
+const makePostsContainer = (watched, elements = [], text = '') => {
   const postList = elements.map((post) => {
     const el = createNewElement('li', ['list-group-item', 'd-flex',
       'justify-content-between', 'align-items-start',
       'border-0', 'border-end-0']);
-    const link = createNewElement('a', ['fw-bold']);
+    let link = '';
+    if (watched.includes(post)) {
+      link = createNewElement('a', ['fw-normal', 'link-secondary']);
+    } else {
+      link = createNewElement('a', ['fw-bold']);
+    }
     link.setAttribute('data-id', post.id);
     link.setAttribute('target', '_blank');
     link.setAttribute('href', post.linkPost);
@@ -72,9 +77,9 @@ const changeStylePost = (ids) => {
     const link = document.querySelector(`[data-id='${id}']`);
     link.classList.remove('fw-bold');
     link.classList.add('fw-normal', 'link-secondary');
+    return link;
   });
-  //const link = document.querySelector(`[data-id='${id}']`);
-}
+};
 
 const makeSuccesText = (input, p, text) => {
   input.classList.remove('is-invalid');
@@ -105,16 +110,14 @@ export default (state, i18n) => onChange(state, (path, value) => {
       break;
 
     case 'status':
-      //  input.value = '';
-      //  input.focus();
       feedsEl.textContent = '';
       postsEl.textContent = '';
       makeFeedList(state.feeds, i18n.t('titleFeeds'));
-      makePostsContainer(state.posts, i18n.t('titlePosts'));
+      makePostsContainer(state.watchedPosts, state.posts, i18n.t('titlePosts'));
       makeSuccesText(urlInput, paragraph, i18n.t('validUrl'));
       break;
     case 'posts':
-      makePostsContainer(state.posts, i18n.t('titlePosts'));
+      makePostsContainer(state.watchedPosts, state.posts, i18n.t('titlePosts'));
       break;
     case 'feeds':
       break;
@@ -122,7 +125,9 @@ export default (state, i18n) => onChange(state, (path, value) => {
       makeModal(value);
       break;
     case 'opened':
-      changeStylePost(value); // почему меняются обратно при обновлении :(
+      changeStylePost(value);
+      break;
+    case 'watchedPosts':
       break;
     default:
       throw new Error('BOOM!');

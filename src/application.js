@@ -30,11 +30,12 @@ export default async () => {
       link: '',
       title: '',
       descr: '',
-    }, // мб убрать завязать окно на изменение opened
+    },
     links: [],
     feeds: [],
     posts: [],
     opened: [],
+    watchedPosts: [],
   };
 
   const i18n = i18next.createInstance();
@@ -86,11 +87,7 @@ export default async () => {
           const oldTitles = new Set(watchedState.posts.map((post) => post.titlePost));
           const filteredNewPost = newPosts.filter((post) => !oldTitles.has(post.titlePost));
           const newPostsWithId = filteredNewPost.map((post) => ({ id: _.uniqueId(), ...post }));
-          //const updatePosts = [...newPostsWithId, ...watchedState.posts];
           newPostsWithId.map((post) => watchedState.posts.unshift(post));
-          //watchedState.posts.unshift(...newPostsWithId);
-          console.log(watchedState.opened)
-          //state.posts = updatePosts;
         }).catch((error) => errorHandler(error)));
 
       Promise.all(newPromise)
@@ -109,16 +106,17 @@ export default async () => {
 
   rssForm.addEventListener('submit', (e) => {
     e.preventDefault();
+
     makeValidateScheme(state.links).validate(input.value)
       .then(() => {
         getHTTPresponseData(input.value).then(() => {
           state.form.error = i18n.t('validUrl');
           state.links.push(input.value);
-
           watchedState.status = 'loaded';
-
           watchedState.status = 'feeling';
-          updateData(watchedState.feeds); // тут что то не так не понимаю что
+          updateData(watchedState.feeds);
+          e.target.reset();
+          input.focus();
         }).catch((err) => errorHandler(err));
       })
       .catch((error) => {
@@ -126,15 +124,25 @@ export default async () => {
         watchedState.form.error = currentError;
         state.form.error = currentError;
       });
-
   });
 
   posts.addEventListener('click', (e) => {
-    const activePostId = e.target.dataset.id;
-    const activePost = watchedState.posts.filter((post) => post.id === activePostId)[0];
-    const { id, titlePost, descriptionPost, linkPost } = activePost;
-    watchedState.action = { linkPost, titlePost, descriptionPost };
-    watchedState.opened.push(id);
-  })
-
+    if (e.target.dataset.id) {
+      const activePostId = e.target.dataset.id;
+      const activePost = watchedState.posts.filter((post) => post.id === activePostId)[0];
+      const {
+        id,
+        titlePost,
+        descriptionPost,
+        linkPost,
+      } = activePost;
+      watchedState.action = {
+        linkPost,
+        titlePost,
+        descriptionPost,
+      };
+      watchedState.opened.push(id);
+      watchedState.watchedPosts.push(activePost);
+    }
+  });
 };
