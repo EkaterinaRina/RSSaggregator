@@ -2,7 +2,7 @@ import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
-import renderRSS from './view.js';
+import view from './view.js';
 import getParsedData from './parse.js';
 
 const createUrl = (rssFeed) => {
@@ -59,7 +59,7 @@ export default async () => {
     },
   });
 
-  const watchedState = renderRSS(state, i18n);
+  const watchedState = view(state, i18n);
 
   const errorHandler = (error) => {
     if (error.isAxiosError) {
