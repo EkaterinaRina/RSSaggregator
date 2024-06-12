@@ -26,9 +26,15 @@ export default async () => {
       status: '',
       error: '',
     },
+    action: {
+      link: '',
+      title: '',
+      descr: '',
+    }, // мб убрать завязать окно на изменение opened
     links: [],
     feeds: [],
     posts: [],
+    opened: [],
   };
 
   const i18n = i18next.createInstance();
@@ -80,10 +86,13 @@ export default async () => {
           const oldTitles = new Set(watchedState.posts.map((post) => post.titlePost));
           const filteredNewPost = newPosts.filter((post) => !oldTitles.has(post.titlePost));
           const newPostsWithId = filteredNewPost.map((post) => ({ id: _.uniqueId(), ...post }));
-          const updatePosts = [...newPostsWithId, ...watchedState.posts];
-          watchedState.posts = updatePosts;
-          state.posts = updatePosts;
+          //const updatePosts = [...newPostsWithId, ...watchedState.posts];
+          newPostsWithId.map((post) => watchedState.posts.unshift(post));
+          //watchedState.posts.unshift(...newPostsWithId);
+          console.log(watchedState.opened)
+          //state.posts = updatePosts;
         }).catch((error) => errorHandler(error)));
+
       Promise.all(newPromise)
         .finally(() => updateData(feeds));
     }, interval);
@@ -96,10 +105,10 @@ export default async () => {
 
   const rssForm = document.querySelector('.rss-form');
   const input = document.querySelector('#url-input');
+  const posts = document.querySelector('.posts');
 
   rssForm.addEventListener('submit', (e) => {
     e.preventDefault();
-
     makeValidateScheme(state.links).validate(input.value)
       .then(() => {
         getHTTPresponseData(input.value).then(() => {
@@ -109,8 +118,7 @@ export default async () => {
           watchedState.status = 'loaded';
 
           watchedState.status = 'feeling';
-          updateData(state.feeds);
-          console.log(state);
+          updateData(watchedState.feeds); // тут что то не так не понимаю что
         }).catch((err) => errorHandler(err));
       })
       .catch((error) => {
@@ -118,5 +126,15 @@ export default async () => {
         watchedState.form.error = currentError;
         state.form.error = currentError;
       });
+
   });
+
+  posts.addEventListener('click', (e) => {
+    const activePostId = e.target.dataset.id;
+    const activePost = watchedState.posts.filter((post) => post.id === activePostId)[0];
+    const { id, titlePost, descriptionPost, linkPost } = activePost;
+    watchedState.action = { linkPost, titlePost, descriptionPost };
+    watchedState.opened.push(id);
+  })
+
 };

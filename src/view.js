@@ -58,6 +58,24 @@ const makePostsContainer = (elements = [], text = '') => {
   makeContainer(box, postList, text);
 };
 
+const makeModal = (element) => {
+  const modalTitle = document.querySelector('.modal-title');
+  const modalBody = document.querySelector('.modal-body');
+  modalTitle.textContent = element.titlePost;
+  modalBody.textContent = element.descriptionPost;
+  const buttonLink = document.querySelector('.full-article');
+  buttonLink.setAttribute('href', element.linkPost);
+};
+
+const changeStylePost = (ids) => {
+  ids.map((id) => {
+    const link = document.querySelector(`[data-id='${id}']`);
+    link.classList.remove('fw-bold');
+    link.classList.add('fw-normal', 'link-secondary');
+  });
+  //const link = document.querySelector(`[data-id='${id}']`);
+}
+
 const makeSuccesText = (input, p, text) => {
   input.classList.remove('is-invalid');
   input.classList.add('is-valid');
@@ -99,6 +117,12 @@ export default (state, i18n) => onChange(state, (path, value) => {
       makePostsContainer(state.posts, i18n.t('titlePosts'));
       break;
     case 'feeds':
+      break;
+    case 'action':
+      makeModal(value);
+      break;
+    case 'opened':
+      changeStylePost(value); // почему меняются обратно при обновлении :(
       break;
     default:
       throw new Error('BOOM!');
