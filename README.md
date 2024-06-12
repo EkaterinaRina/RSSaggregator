@@ -8,5 +8,7 @@
 This is a service for aggregating RSS feeds, with which you can read a variety of sources, for example, blogs. It allows you to add an unlimited number of RSS feeds, updates them itself and adds new entries to the general feed.  
 
 ## Setup  
-```npm install```  
+```javascript  
+npm install  
+```  
 
