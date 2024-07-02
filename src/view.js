@@ -114,7 +114,7 @@ export default (state, elements, i18n) => onChange(state, (path, value) => {
   switch (path) {
     case 'form.error':
       console.log(value);
-      makeInvaildText(elements, i18n.t(value));
+      makeInvaildText(elements, i18n.t(`errors.${value}`));
       break;
     case 'process':
       if (value === 'init') {
