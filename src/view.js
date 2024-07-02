@@ -1,5 +1,21 @@
 import onChange from 'on-change';
 
+const displayInitialization = (elements, i18n) => {
+  elements.init.readCompletelyEl.textContent = i18n.t('elsInit.readCompletely');
+  elements.init.close.textContent = i18n.t('elsInit.close');
+  elements.init.projectTitle.textContent = i18n.t('elsInit.projectTitle');
+  elements.init.startRead.textContent = i18n.t('elsInit.startRead');
+  elements.init.labelRss.textContent = i18n.t('elsInit.placeholder');
+  elements.init.addButton.textContent = i18n.t('elsInit.add');
+  elements.init.exampleRss.textContent = i18n.t('elsInit.exampleRss');
+  elements.init.createdBy.textContent = i18n.t('elsInit.createdBy');
+  const createdLink = document.createElement('a');
+  createdLink.setAttribute('href', i18n.t('elsInit.createdLink'));
+  createdLink.setAttribute('tagret', '_blank');
+  createdLink.textContent = i18n.t('elsInit.createdName');
+  elements.init.createdBy.append(createdLink);
+};
+
 const createNewElement = (tag, style = [], content = '') => {
   const element = document.createElement(tag);
   element.classList.add(...style);
@@ -38,7 +54,7 @@ const makePostsContainer = (watched, elements = [], text = '') => {
       'justify-content-between', 'align-items-start',
       'border-0', 'border-end-0']);
     let link = '';
-    if (watched.includes(post)) {
+    if (watched.has(post)) {
       link = createNewElement('a', ['fw-normal', 'link-secondary']);
     } else {
       link = createNewElement('a', ['fw-bold']);
@@ -63,13 +79,10 @@ const makePostsContainer = (watched, elements = [], text = '') => {
   makeContainer(box, postList, text);
 };
 
-const makeModal = (element) => {
-  const modalTitle = document.querySelector('.modal-title');
-  const modalBody = document.querySelector('.modal-body');
-  modalTitle.textContent = element.titlePost;
-  modalBody.textContent = element.descriptionPost;
-  const buttonLink = document.querySelector('.full-article');
-  buttonLink.setAttribute('href', element.linkPost);
+const makeModal = (elements, value) => {
+  elements.modal.title.textContent = value.titlePost;
+  elements.modal.body.textContent = value.descriptionPost;
+  elements.modal.buttonLink.setAttribute('href', value.linkPost);
 };
 
 const changeStylePost = (ids) => {
@@ -81,40 +94,39 @@ const changeStylePost = (ids) => {
   });
 };
 
-const makeSuccesText = (input, p, text) => {
-  input.classList.remove('is-invalid');
-  input.classList.add('is-valid');
-  p.textContent = text; //  eslint-disable-next-line no-param-reassign
-  p.classList.remove('text-danger');
-  p.classList.add('text-success');
+const makeSuccesText = (elements, text) => {
+  elements.urlInput.classList.remove('is-invalid');
+  elements.urlInput.classList.add('is-valid');
+  elements.feedback.textContent = text;
+  elements.feedback.classList.remove('text-danger');
+  elements.feedback.classList.add('text-success');
 };
 
-const makeInvaildText = (input, p, text) => {
-  input.classList.remove('is-valid');
-  input.classList.add('is-invalid');
-  p.classList.remove('text-success');
-  p.classList.add('text-danger');
-  p.textContent = text; //  eslint-disable-next-line no-param-reassign
+const makeInvaildText = (elements, text) => {
+  elements.urlInput.classList.remove('is-valid');
+  elements.urlInput.classList.add('is-invalid');
+  elements.feedback.classList.remove('text-success');
+  elements.feedback.classList.add('text-danger');
+  elements.feedback.textContent = text;
 };
 
-export default (state, i18n) => onChange(state, (path, value) => {
-  const paragraph = document.querySelector('.feedback');
-  const urlInput = document.querySelector('#url-input');
-  const feedsEl = document.querySelector('.feeds');
-  const postsEl = document.querySelector('.posts');
-
+export default (state, elements, i18n) => onChange(state, (path, value) => {
   switch (path) {
     case 'form.error':
       console.log(value);
-      makeInvaildText(urlInput, paragraph, i18n.t(value));
+      makeInvaildText(elements, i18n.t(value));
       break;
-
+    case 'process':
+      if (value === 'init') {
+        displayInitialization(elements, i18n);
+      }
+      break;
     case 'status':
-      feedsEl.textContent = '';
-      postsEl.textContent = '';
+      elements.feeds.textContent = '';
+      elements.posts.textContent = '';
       makeFeedList(state.feeds, i18n.t('titleFeeds'));
       makePostsContainer(state.watchedPosts, state.posts, i18n.t('titlePosts'));
-      makeSuccesText(urlInput, paragraph, i18n.t('validUrl'));
+      makeSuccesText(elements, i18n.t('validUrl'));
       break;
     case 'posts':
       makePostsContainer(state.watchedPosts, state.posts, i18n.t('titlePosts'));
@@ -122,7 +134,7 @@ export default (state, i18n) => onChange(state, (path, value) => {
     case 'feeds':
       break;
     case 'action':
-      makeModal(value);
+      makeModal(elements, value);
       break;
     case 'opened':
       changeStylePost(value);

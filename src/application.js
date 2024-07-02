@@ -4,14 +4,41 @@ import axios from 'axios';
 import _ from 'lodash';
 import view from './view.js';
 import getParsedData from './parse.js';
+import resources from '../locales/index.js';
 
 const createUrl = (rssFeed) => {
-  const proxy = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
-  const proxiedUrl = `${proxy}${rssFeed}`;
+  const proxy = 'https://allorigins.hexlet.app/get';
+  const proxiedUrl = new URL(proxy);
+  proxiedUrl.searchParams.set('disableCache', 'true');
+  proxiedUrl.searchParams.set('url', rssFeed);
   return proxiedUrl;
 };
 
 export default async () => {
+  const elements = {
+    init: {
+      readCompletelyEl: document.querySelector('.full-article'),
+      close: document.querySelector('.modal-footer > button'),
+      projectTitle: document.querySelector('h1'),
+      startRead: document.querySelector('.lead'),
+      labelRss: document.querySelector('label[for="url-input"]'),
+      addButton: document.querySelector('button[type="submit"]'),
+      exampleRss: document.querySelector('.text-white-50'),
+      createdBy: document.querySelector('.text-center'),
+    },
+    form: document.querySelector('.rss-form'),
+    urlInput: document.getElementById('url-input'),
+    feedback: document.querySelector('.feedback'),
+    exampleUrl: document.querySelector('.example-url'),
+    feeds: document.querySelector('.feeds'),
+    posts: document.querySelector('.posts'),
+    modal: {
+      title: document.querySelector('.modal-title'),
+      body: document.querySelector('.modal-body'),
+      buttonLink: document.querySelector('.full-article'),
+    },
+  };
+
   yup.setLocale({
     mixed: {
       default: 'default',
@@ -22,6 +49,7 @@ export default async () => {
   });
 
   const state = {
+    process: '',
     form: {
       status: '',
       error: '',
@@ -35,37 +63,24 @@ export default async () => {
     feeds: [],
     posts: [],
     opened: [],
-    watchedPosts: [],
+    watchedPosts: new Set(),
   };
 
   const i18n = i18next.createInstance();
   i18n.init({
     lng: 'ru',
     debug: true,
-    resources: {
-      ru: {
-        translation: {
-          titleFeeds: 'Фиды',
-          titlePosts: 'Посты',
-          validUrl: 'RSS успешно загружен',
-          invalidUrl: 'Ссылка должна быть валидным URL',
-          empty: 'Не должно быть пустым',
-          alreadyExists: 'RSS уже существует',
-          noRSS: 'Ресурс не содержит валидный RSS',
-          networkError: 'Ошибка сети',
-          default: 'Что-то пошло не так',
-        },
-      },
-    },
+    resources,
   });
 
-  const watchedState = view(state, i18n);
+  const watchedState = view(state, elements, i18n);
+  watchedState.process = 'init';
 
   const errorHandler = (error) => {
     if (error.isAxiosError) {
-      watchedState.form.error = i18n.t('networkError');
+      watchedState.form.error = i18n.t('errors.networkError');
     } else {
-      watchedState.form.error = i18n.t('noRSS');
+      watchedState.form.error = i18n.t('errors.noRSS');
     }
   };
 
@@ -100,23 +115,19 @@ export default async () => {
     return schema;
   };
 
-  const rssForm = document.querySelector('.rss-form');
-  const input = document.querySelector('#url-input');
-  const posts = document.querySelector('.posts');
-
-  rssForm.addEventListener('submit', (e) => {
+  elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    makeValidateScheme(state.links).validate(input.value)
+    makeValidateScheme(state.links).validate(elements.urlInput.value)
       .then(() => {
-        getHTTPresponseData(input.value).then(() => {
+        getHTTPresponseData(elements.urlInput.value).then(() => {
           state.form.error = i18n.t('validUrl');
-          state.links.push(input.value);
+          state.links.push(elements.urlInput.value);
           watchedState.status = 'loaded';
           watchedState.status = 'feeling';
           updateData(watchedState.feeds);
           e.target.reset();
-          input.focus();
+          elements.urlInput.focus();
         }).catch((err) => errorHandler(err));
       })
       .catch((error) => {
@@ -126,7 +137,7 @@ export default async () => {
       });
   });
 
-  posts.addEventListener('click', (e) => {
+  elements.posts.addEventListener('click', (e) => {
     if (e.target.dataset.id) {
       const activePostId = e.target.dataset.id;
       const activePost = watchedState.posts.filter((post) => post.id === activePostId)[0];
@@ -142,7 +153,7 @@ export default async () => {
         descriptionPost,
       };
       watchedState.opened.push(id);
-      watchedState.watchedPosts.push(activePost);
+      watchedState.watchedPosts.add(activePost);
     }
   });
 };
