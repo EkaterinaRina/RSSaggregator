@@ -4,7 +4,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import view from './view.js';
 import getParsedData from './parse.js';
-import resources from '../locales/index.js';
+import resources from './locales/index.js';
 
 const createUrl = (rssFeed) => {
   const proxy = 'https://allorigins.hexlet.app/get';
@@ -87,12 +87,11 @@ export default async () => {
   const getHTTPresponseData = (url) => axios.get(createUrl(url))
     .then((response) => {
       const parsedData = getParsedData(response.data.contents);
-      const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: url, ...feed }));
+      const feedsWithUrl = { link: url, ...parsedData.feeds };
       const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
       watchedState.feeds = [...watchedState.feeds, feedsWithUrl];
       watchedState.posts = [...watchedState.posts, ...initial];
     });
-  //  .catch(() => new Error('networkError'));
 
   const updateData = (feeds, interval = 5000) => {
     setTimeout(() => {

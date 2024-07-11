@@ -15,5 +15,5 @@ export default (data) => {
     const linkPost = item.querySelector('link').textContent;
     return { titlePost, descriptionPost, linkPost };
   });
-  return { feeds: [{ title: feedTitle, description: feedDescription }], posts: newPosts };
+  return { feeds: { title: feedTitle, description: feedDescription }, posts: newPosts };
 };
